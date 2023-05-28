@@ -35,7 +35,7 @@ function setup_variables() {
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_C_COMPILER_WORKS=ON \
         -DCMAKE_CXX_COMPILER_WORKS=ON \
-        -DCMAKE_OSX_DEPLOYMENT_TARGET=12.4 \
+        -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
         -DCMAKE_INSTALL_PREFIX=$REPO_ROOT/$2/$PLATFORM)
 
     case $PLATFORM in
@@ -74,6 +74,21 @@ function setup_variables() {
             echo "Unsupported or missing platform! Must be one of" ${AVAILABLE_PLATFORMS[@]}
             exit 1;;
     esac
+    
+    ### hepo here
+    case $PLATFORM in
+        "iphoneos")
+            export CFLAGS="-miphoneos-version-min=13.0";;
+            
+        "iphonesimulator"|"iphonesimulator-arm64")
+            export CFLAGS="-miphonesimulator-version-min=13.0";;
+
+        "macosx"|"macosx-arm64")
+            export CFLAGS="-isysroot $SYSROOT -mmacosx-version-min=10.10";;
+            
+        *)
+    esac
+    
 }
 
 ### Build libpcre for a given platform
@@ -108,11 +123,11 @@ function build_openssl() {
     case $PLATFORM in
         "iphoneos")
             TARGET_OS=ios64-cross
-            export CFLAGS="-isysroot $SYSROOT -arch $ARCH -mios-version-min=13.0";;
+            export CFLAGS="-isysroot $SYSROOT -arch $ARCH -mios-version-min=10.10";;
 
         "iphonesimulator")
             TARGET_OS=iossimulator-xcrun
-            export CFLAGS="-isysroot $SYSROOT -miphonesimulator-version-min=13.0";;
+            export CFLAGS="-isysroot $SYSROOT -miphonesimulator-version-min=10.10";;
 
         "maccatalyst"|"maccatalyst-arm64")
             TARGET_OS=darwin64-$ARCH-cc
@@ -154,9 +169,9 @@ function build_libssh2() {
         -DBUILD_EXAMPLES=OFF \
         -DBUILD_TESTING=OFF)
 
-    cmake "${CMAKE_ARGS[@]}" .. 
+    cmake "${CMAKE_ARGS[@]}" ..
 
-    cmake --build . --target install 
+    cmake --build . --target install
 }
 
 ### Build libgit2 for a single platform (given as the first and only argument)
